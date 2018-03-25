@@ -1,0 +1,10 @@
+*.pyc
+__pycache__
+*.zip
+.idea/
+.DS_Store
+.vscode
+myconf/
+atomtorss2/
+atom_gen.egg-info/
+
