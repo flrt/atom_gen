@@ -144,7 +144,7 @@ class Feed:
         with codecs.open(self.feed_filename, "w", Feed.FEED_ENCODING) as fout:
             fout.write(content.xml2text(root, Feed.FEED_ENCODING))
 
-    def rss2(self, feed):
+    def rss2(self, feed=None):
         """
         Conversion du document atom en ficher rss2
 
@@ -165,7 +165,7 @@ class Feed:
             proc.load_xslt(xslt_filename)
 
             # conversion RSS2
-            if feed:
+            if feed is not None:
                 result_xml = proc.transform(feed)
             else:
                 result_xml = proc.transform(lxml.etree.parse(self.feed_filename))
