@@ -8,9 +8,12 @@ __license__ = "MIT"
 
 import logging
 import os.path
+import shutil
+
 from ftplib import FTP
 
 import mailer
+import requests
 
 from easy_atom import helpers, content
 
@@ -105,3 +108,57 @@ class UploadAction(Action):
                     fh.close()  # close file and FTP
                 else:
                     self.logger.warn("File %s not found" % filename)
+
+
+class DownloadAction(Action):
+    """
+    Action de téléchargement de fichiers définis par des URL
+    """
+
+    def download(self, url):
+        return self.download_url(self.conf['download_dir'], url)
+
+    @staticmethod
+    def download_url(download_dir, url):
+        if download_dir and not os.path.exists(download_dir):
+            os.makedirs(download_dir)
+
+        local_filename = os.path.join(download_dir, url.split('/')[-1])
+
+        req = requests.get(url, stream=True)
+        with open(local_filename, 'wb') as f:
+            shutil.copyfileobj(req.raw, f)
+
+        return os.path.abspath(local_filename)
+
+    def process(self, infos):
+        """
+        Télécharge en local les fichiers désignés par des URL dans les données info.
+        Les fichiers peuvent être désignés par la clé <url> ou par la clé <files>
+
+        Exemple :
+        infos = {'type': 'CCAM',
+        'version': 49.0,
+        'date': '2017-10-21T08:14:06.351015+00:00',
+        'url': None,
+        'files': [
+        'https://www.ameli.fr/fileadmin/user_upload/documents/CCAM04900_DBF_PART1.zip',
+        'https://www.ameli.fr/fileadmin/user_upload/documents/CCAM04900_DBF_PART2.zip',
+        'https://www.ameli.fr/fileadmin/user_upload/documents/CCAM04900_DBF_PART3.zip']}
+
+        :param infos: dictionnaire contenant les informations sur les données à télécharger
+        :return: Liste des fichiers locaux telechargés, type: List
+        """
+        files = []
+
+        if self.conf and self.conf['download']:
+            self.logger.info("Téléchargement des fichiers...")
+            if infos["url"]:
+                fn = self.download(infos["url"])
+                files.append(fn)
+            if len(infos["files"]):
+                for f in infos["files"]:
+                    fn = self.download(f)
+                    files.append(fn)
+
+        return files
