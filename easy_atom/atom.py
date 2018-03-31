@@ -63,6 +63,9 @@ class Feed:
         self.logger.debug("Load config file : {}".format(filename))
         self.feed_config = helpers.load_json(filename)
 
+    def make_entry_id(self, id):
+        return "{}{}".format(self.feed_config["entry"]["urn_mask"], id)
+
     def generate(self, entries):
         """
         Génération du fichier XML Atom
