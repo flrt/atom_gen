@@ -14,6 +14,7 @@ from ftplib import FTP
 
 import mailer
 import requests
+import tempfile
 
 from easy_atom import helpers, content
 
@@ -116,6 +117,11 @@ class DownloadAction(Action):
     """
 
     def download(self, url):
+        if not self.conf:
+            self.conf = {}
+        if 'download_dir' not in self.conf:
+            self.conf['download_dir'] = tempfile.mkdtemp(suffix='action', prefix='easy_atom')
+
         return self.download_url(self.conf['download_dir'], url)
 
     @staticmethod
