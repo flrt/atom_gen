@@ -32,8 +32,11 @@ def make_xhtml(root, entry):
     div_elt = xmlelt(article_elt, "div", None, None)
 
     if 'files' in entry and entry['files']:
-        xmlelt(div_elt, "h1", u"Fichier%s à télécharger : " %
-               "" if len(entry["files"]) == 1 else "s")
+        suffix = ''
+        if len(entry["files"]) > 1:
+            suffix = 's'
+
+        xmlelt(div_elt, "h1", u"Fichier{} à télécharger : ".format(suffix))
 
         ul = xmlelt(div_elt, "ul")
         for fi in entry['files']:
@@ -49,41 +52,6 @@ def make_xhtml(root, entry):
         article_elt.append(elt)
 
     return content_elt
-
-
-def make_xhtml_(root, entry):
-    """
-    Creation d'un contenu XHTML pour une entree ATOM
-    content > div > article > blabla
-
-    si files fait partie des informations dans l'entree, une section telechargement est inseree
-    contenu : text
-
-    :param root: noeud XML du père du contenu
-    :param entry: données de l'entrée ATOM
-    :return: noeud XML produit
-    """
-    content_elt = xmlelt(root, "content", None, {"type": "xhtml"})
-    main_div_elt = xmlelt(content_elt, "div", None, {"xmlns": "http://www.w3.org/1999/xhtml"})
-    article_elt = xmlelt(main_div_elt, "article", None, None)
-    div_elt = xmlelt(article_elt, "div", None, None)
-
-    if 'files' in entry and entry['files']:
-        xmlelt(div_elt, "h1",
-               u"Fichier{} à télécharger : ".format(
-               "" if len(entry["files"]) == 1 else "s"))
-
-        ul = xmlelt(div_elt, "ul")
-        for fi in entry['files']:
-            xmlelt(xmlelt(ul, "li"), "a", fi, {"href": fi})
-
-    if "text" in entry and entry["text"]:
-        # elt = xml.etree.ElementTree.fromstring(entry["text"])
-        elt = lxml.etree.fromstring(entry["text"])
-        article_elt.append(elt)
-
-    return content_elt
-
 
 def xml2text(elem, encoding='utf-8', xml_decl=True):
     """
