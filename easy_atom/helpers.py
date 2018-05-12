@@ -13,6 +13,8 @@ import json
 import logging
 import os.path
 import sys
+import math
+
 from collections import namedtuple
 from itertools import (takewhile, repeat)
 from json.decoder import JSONDecodeError
@@ -169,3 +171,13 @@ def file_logger(filename, name, level):
     """
     sth_file = logging.FileHandler(os.path.abspath(filename))
     return config_logger(sth_file, name, level)
+
+
+def file_size(size_bytes):
+   if size_bytes == 0:
+       return "0 o"
+   size_name = ("o", "Ko", "Mo", "Go", "To", "Po", "Eo", "Zo", "Yo")
+   i = int(math.floor(math.log(size_bytes, 1024)))
+   p = math.pow(1024, i)
+   s = round(size_bytes / p, 2)
+   return "%s %s" % (s, size_name[i])

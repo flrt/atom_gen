@@ -11,7 +11,7 @@ import unittest
 import action
 
 
-class TestRegex(unittest.TestCase):
+class TestMail(unittest.TestCase):
     def test_mail_conf(self):
         conffn = 'myconf/mail.json'
 

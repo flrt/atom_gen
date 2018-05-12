@@ -44,7 +44,7 @@ class Feed:
         """
         self.logger = logging.getLogger('feed')
         self.ref = ref
-        self.selhref = selfhref
+        self.selfhref = selfhref
         self.feed_config = {}
         self.load_config()
 
@@ -62,7 +62,23 @@ class Feed:
         filename = os.path.join(Feed.ATOM_CONFIG_DIR, "feed_config_{}.json".format(self.ref))
         self.logger.debug("Load config file : {}".format(filename))
         self.feed_config = helpers.load_json(filename)
+    
+    def feed_url(self, feed_type='atom'):
+        _url=[]
+        if self.selfhref:
+            if self.selfhref.endswith('/'):
+                _url.append(self.selfhref[:-1])
+            else:
+                _url.append(self.selfhref)
 
+        if feed_type=='atom':
+            _url.append(self.feed_config["header"]["atom_feedname"])
+        else:
+            _url.append(self.feed_config["header"]["rss2_feedname"])
+
+        return '/'.join(_url)
+
+            
     def make_entry_id(self, id):
         return "{}{}".format(self.feed_config["entry"]["urn_mask"], id)
 
@@ -83,8 +99,7 @@ class Feed:
                        {"href": self.feed_config["header"]["link"],
                         "rel": "related"})
         content.xmlelt(root, "link", None,
-                       {"href": '{}{}'.format(self.selhref,
-                                              self.feed_config["header"]["atom_feedname"]),
+                       {"href": self.feed_url(),
                         "rel": "self"})
 
         content.xmlelt(root, "updated", self.update_date)
@@ -100,27 +115,35 @@ class Feed:
                         "version": "1.0"})
         content.xmlelt(root, "rights", "CC BY-SA 3.0 FR")
 
+        self.make_entries(root, entries)
+
+        return root
+
+    def make_entries(self, xml_parent, entries):
         for entry in entries:
             self.logger.debug("current entry : %s" % entry)
 
-            xml_entry = content.xmlelt(root, "entry")
+            xml_entry = content.xmlelt(xml_parent, "entry")
             content.xmlelt(xml_entry, "title", entry["title"])
 
-            if 'files' in entry and entry['files']:
-                for fi in entry['files']:
-                    content.xmlelt(xml_entry, "link", None,
-                                   {"href": fi,
-                                    "rel": "related",
-                                    "type": self.mimetype(fi)})
+            # generation des liens avec les informations detaillees
+            if 'files_props' in entry:
+                self.add_entry_links(xml_entry, 
+                    list(map(lambda x: x['url'], entry['files_props'])))
+            # sinon avec seulement les liens vers les fichiers    
+            elif 'files' in entry:
+                self.add_entry_links(xml_entry, entry['files'])
 
             content.xmlelt(xml_entry, "id", entry["id"])
             # fabrication du contenu
             content.make_xhtml(xml_entry, entry)
             content.xmlelt(xml_entry, "updated", entry["date"])
             content.xmlelt(xml_entry, "summary", entry["summary"])
-
-        return root
-
+        
+    def add_entry_links(self, xml_entry, link_list):
+        for link in link_list:
+            content.xmlelt(xml_entry, "link", None,
+                            {"href": link, "rel": "related", "type": self.mimetype(link)})
     @staticmethod
     def mimetype(link):
         """

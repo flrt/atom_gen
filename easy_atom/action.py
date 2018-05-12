@@ -15,6 +15,7 @@ from ftplib import FTP
 import mailer
 import requests
 import tempfile
+import tweepy, tweepy.error
 
 from easy_atom import helpers, content
 
@@ -168,3 +169,33 @@ class DownloadAction(Action):
                     files.append(fn)
 
         return files
+    
+class TweetAction(Action):
+    def process(self, infos):
+        """
+            tweet les informations contenues dans info
+
+        :param infos: texte a tweeter
+        :return: URL du tweet ou None si erreur
+        """
+        
+        auth = tweepy.OAuthHandler(self.conf['consumer_key'], self.conf['consumer_secret'])
+        auth.set_access_token(self.conf['access_token'], self.conf['access_token_secret']) 
+        api = tweepy.API(auth)
+
+        id_ret = None
+        self.logger.info("Tweet : {}".format(infos))
+        if isinstance(infos, str):
+            try:
+                ret = api.update_status(status=infos)
+                self.logger.info("JSON = {}".format(ret._json))
+                _url_parts=['https://www.twitter.com', 
+                    ret._json['user']['screen_name'],
+                    'status',
+                    ret._json['id_str']]
+                return '/'.join(_url_parts)
+
+            except tweepy.error.TweepError as te:
+                self.logger.warning("Erreur de tweet : {} ".format(te))
+        
+        return id_ret
