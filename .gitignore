@@ -1,0 +1,7 @@
+*.pyc
+__pycache__
+.idea/
+.DS_Store
+.vscode
+myconf/
+atom_gen.egg-info/
