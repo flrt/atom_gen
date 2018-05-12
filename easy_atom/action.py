@@ -59,22 +59,25 @@ class SendMailAction(Action):
     Action : envoi de mail
     """
 
-    def __init__(self, conf_filename=None, conf=None, nomenclature=None):
+    def __init__(self, conf_filename=None, conf=None):
         Action.__init__(self, conf_filename=conf_filename, conf=conf)
-        self.nomen = nomenclature if nomenclature is not None else ''
         self.logger.debug("Mail configuration : %s" % self.conf)
 
     def process(self, infos):
         """
-        En prenant les informations dans la configuration fournie, un mail est envoyé en se basant
-        sur les informations contenues dans le paramètre
+        En prenant les informations dans la configuration fournie, 
+        un mail est envoyé en se basant sur les informations contenues dans le paramètre
+
+            subject = infos['title']
+            content = mise en forme avec make_xhtml
+
         :param infos: données à envoyer par mail
         :return: -
         """
         self.logger.debug("Send Mail notification, infos = {}".format(infos))
         if self.conf:
             message = mailer.Message(From=self.conf['from'], To=self.conf['to'], charset="utf-8")
-            message.Subject = "{} {}".format(self.conf['subject'], self.nomen.upper())
+            message.Subject = infos['title']
 
             message.Html = content.xml2text(content.make_xhtml(root=None, entry=infos), 'utf-8')
             sender = mailer.Mailer(host=self.conf['server'], port=self.conf['port'],
@@ -87,7 +90,7 @@ class SendMailAction(Action):
 
 class UploadAction(Action):
     """
-    Action de téléchargement sur un site FTP de fichiers
+    Action de téléchargement (upload) de fichiers sur un site FTP 
     Les données de connexion au serveur FTP sont fournies via les données de
     configuration
     Voir le constructeur.
@@ -115,9 +118,19 @@ class UploadAction(Action):
 class DownloadAction(Action):
     """
     Action de téléchargement de fichiers définis par des URL
+    Les fichiers sont téléchargés localement.
     """
 
     def download(self, url):
+        """
+        Télécharge tous les fichiers en local dans le repertoire défini dans les paramètres de 
+        configuration avec la clé download_dir. Si aucun répertoire local n'est défini, un répertoire
+        temporaire est créé.
+
+        :param url: URL du fichier distant à télécharger
+        :return: Chemin absolu du fichier téléchargé.
+        """
+        
         if not self.conf:
             self.conf = {}
         if 'download_dir' not in self.conf:
@@ -171,9 +184,13 @@ class DownloadAction(Action):
         return files
     
 class TweetAction(Action):
+    """
+        Permet de tweeter un texte. Les paramètres du compte sont passés
+        au constructeur.
+    """
     def process(self, infos):
         """
-            tweet les informations contenues dans info
+            tweet les informations contenues dans infos
 
         :param infos: texte a tweeter
         :return: URL du tweet ou None si erreur
