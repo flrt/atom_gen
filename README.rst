@@ -13,6 +13,7 @@ Actions available are :
 
 - SendMail : Send a mail
 - Upload with FTP
+- tweet a text
 
 =======
 Helpers
@@ -30,6 +31,7 @@ The following use case should be straight forward :
 - produces a feed, saved locally
 - send a mail to announce an updated
 - upload the feed on a server via FTP
+- tweet a summary or a link related to the new data
 
 
 
