@@ -33,17 +33,17 @@ class Feed:
     ATOM_CONFIG_DIR = "conf"
     FEED_ENCODING = 'utf-8'
 
-    def __init__(self, ref, selfhref=''):
+    def __init__(self, domain, selfhref=''):
         """
         Constructeur du générateur
 
         Lien vers l'auto référence du flux : https://www.feedvalidator.org/docs/warning/MissingAtomSelfLink.html
 
-        :param ref: référentiel concerné
+        :param domain: un domaine decrivant le flux. Permet d'identifier le fichier de configuration feed_config_<domain>.json
         :param selfhref: HREF du flux XML une fois déployé pour son auto référence
         """
         self.logger = logging.getLogger('feed')
-        self.ref = ref
+        self.domain = domain
         self.selfhref = selfhref
         self.feed_config = {}
         self.load_config()
@@ -56,14 +56,22 @@ class Feed:
 
     def load_config(self):
         """
-        Chargement de la configuration du flux
-        :return:
+        Chargement de la configuration du flux.
+        La configuration du flux se trouve par convention dans le fichier feed_config_<domain>.json
+        :return: - 
         """
-        filename = os.path.join(Feed.ATOM_CONFIG_DIR, "feed_config_{}.json".format(self.ref))
+        filename = os.path.join(Feed.ATOM_CONFIG_DIR, "feed_config_{}.json".format(self.domain))
         self.logger.debug("Load config file : {}".format(filename))
         self.feed_config = helpers.load_json(filename)
     
     def feed_url(self, feed_type='atom'):
+        """
+        Fournit l'URL de flux Atom (ou RSS2)
+        L'URL est constuite en se basant sur l'URL d'auto référence des flux
+
+        :param feed_type: type du flux : rss2 ou atom
+        :return: URL du Flux
+        """
         _url=[]
         if self.selfhref:
             if self.selfhref.endswith('/'):
@@ -115,34 +123,53 @@ class Feed:
                         "version": "1.0"})
         content.xmlelt(root, "rights", "CC BY-SA 3.0 FR")
 
-        self.make_entries(root, entries)
+        for entry in entries:
+            self.logger.debug("current entry : %s" % entry)
+            self.make_entry(root, entry)
 
         return root
 
-    def make_entries(self, xml_parent, entries):
-        for entry in entries:
-            self.logger.debug("current entry : %s" % entry)
+    def make_entry(self, xml_parent, entry):
+        """
+            Fabrication d'une entry Atom
 
-            xml_entry = content.xmlelt(xml_parent, "entry")
-            content.xmlelt(xml_entry, "title", entry["title"])
+            Utilisation de la proprietes files_props si définies qui contient les liens 
+            vers les fichiers distants ainsi que les informations de taille et de disponibilité
+            Si files_props n'est pas disponible, utilisation de la propriété files qui ne contient
+            que la liste des fichiers distants
 
-            # generation des liens avec les informations detaillees
-            if 'files_props' in entry:
-                self.add_entry_links(xml_entry, 
-                    list(map(lambda x: x['url'], entry['files_props'])))
-            # sinon avec seulement les liens vers les fichiers    
-            elif 'files' in entry:
-                self.add_entry_links(xml_entry, entry['files'])
+        :param xml_parent: Noeud XML auquel rattacher l'entry
+        :param entry: données de l'entry
+        :return: -
+        """
+        xml_entry = content.xmlelt(xml_parent, "entry")
+        content.xmlelt(xml_entry, "title", entry["title"])
 
-            content.xmlelt(xml_entry, "id", entry["id"])
-            # fabrication du contenu
-            content.make_xhtml(xml_entry, entry)
-            content.xmlelt(xml_entry, "updated", entry["date"])
-            content.xmlelt(xml_entry, "summary", entry["summary"])
+        # generation des liens avec les informations detaillees
+        if 'files_props' in entry:
+            self.add_entry_links(xml_entry, 
+                list(map(lambda x: x['url'], entry['files_props'])))
+        # sinon avec seulement les liens vers les fichiers    
+        elif 'files' in entry:
+            self.add_entry_links(xml_entry, entry['files'])
+
+        content.xmlelt(xml_entry, "id", entry["id"])
+        # fabrication du contenu
+        content.make_xhtml(xml_entry, entry)
+        content.xmlelt(xml_entry, "updated", entry["date"])
+        content.xmlelt(xml_entry, "summary", entry["summary"])
         
-    def add_entry_links(self, xml_entry, link_list):
+    def add_entry_links(self, xml_parent, link_list):
+        """
+            Création des liens atom à partir d'une liste de liens
+
+        :param xml_parent: noeud XML auquel rattacher ces liens
+        :param link_list: liste de liens
+        :return: -
+        """
+        
         for link in link_list:
-            content.xmlelt(xml_entry, "link", None,
+            content.xmlelt(xml_parent, "link", None,
                             {"href": link, "rel": "related", "type": self.mimetype(link)})
     @staticmethod
     def mimetype(link):

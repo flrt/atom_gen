@@ -87,7 +87,6 @@ class SendMailAction(Action):
             self.logger.debug("Mail sent to {}".format(self.conf['to']))
 
 
-
 class UploadAction(Action):
     """
     Action de téléchargement (upload) de fichiers sur un site FTP 
@@ -182,7 +181,8 @@ class DownloadAction(Action):
                     files.append(fn)
 
         return files
-    
+
+   
 class TweetAction(Action):
     """
         Permet de tweeter un texte. Les paramètres du compte sont passés
