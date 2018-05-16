@@ -80,7 +80,7 @@ def make_download_section(xml_node, entry):
             if fi['href']:
                 xmlelt(xmlelt(ul, "li"), "a", fi['text'], {"href": fi['href']})
             else:
-                xmlelt(xmlelt(ul, "li"), fi['text'])
+                xmlelt(xmlelt(ul, "li"), None, fi['text'])
 
 def xml2text(elem, encoding='utf-8', xml_decl=True):
     """
@@ -99,20 +99,24 @@ def xml2text(elem, encoding='utf-8', xml_decl=True):
     return data.decode(encoding)
 
 
-def xmlelt(root, tag, text=None, attrs=None):
+def xmlelt(parent, tag, text=None, attrs=None):
     """
     Production d'un noeud XML avec positionnement des attributs
 
     :param attrs:
     :param text:
-    :param root: root de l'arbre XML
+    :param parent: parent de l'element XML
     :param tag: balise
     :return: element cree
     """
-    if root is None:
-        elem = Element(tag)
+
+    if tag:
+        if parent is None:
+            elem = Element(tag)
+        else:
+            elem = SubElement(parent, tag)
     else:
-        elem = SubElement(root, tag)
+        elem = parent
 
     if text:
         elem.text = text

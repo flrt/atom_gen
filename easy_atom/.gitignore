@@ -3,7 +3,7 @@ __pycache__
 *.zip
 .idea/
 .DS_Store
-.vscode
+.vscode/
 myconf/
 atomtorss2/
 atom_gen.egg-info/
