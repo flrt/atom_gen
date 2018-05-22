@@ -14,6 +14,7 @@ import logging
 import os.path
 import sys
 import math
+import io
 
 from collections import namedtuple
 from itertools import (takewhile, repeat)
@@ -40,9 +41,10 @@ def load_json(config_filename):
     if not os.path.exists(config_filename):
         return data
     else:
-        with open(config_filename, 'r') as fin:
+        with io.open(config_filename, 'r', encoding='utf-8') as fin:
             try:
-                data = json.loads(fin.read())
+                udata=fin.read()
+                data = json.loads(udata.encode('utf-8'))
             except TypeError as msg_e:
                 logger.warning("load_json_config typeError :%s" % msg_e)
             except JSONDecodeError as msg_j:
