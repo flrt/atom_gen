@@ -76,15 +76,16 @@ class SendMailAction(Action):
         """
         self.logger.debug("Send Mail notification, infos = {}".format(infos))
         if self.conf:
-            message = mailer.Message(From=self.conf['from'], To=self.conf['to'], charset="utf-8")
-            message.Subject = infos['title']
+            for dest in self.conf['to']:
+                message = mailer.Message(From=self.conf['from'], To=dest, charset="utf-8")
+                message.Subject = infos['title']
 
-            message.Html = content.xml2text(content.make_xhtml(root=None, entry=infos), 'utf-8')
-            sender = mailer.Mailer(host=self.conf['server'], port=self.conf['port'],
-                                   usr=self.conf['user'], pwd=self.conf['passwd'],
-                                   use_ssl=self.conf['usessl'])
-            sender.send(message)
-            self.logger.debug("Mail sent to {}".format(self.conf['to']))
+                message.Html = content.xml2text(content.make_xhtml(root=None, entry=infos), 'utf-8')
+                sender = mailer.Mailer(host=self.conf['server'], port=self.conf['port'],
+                                    usr=self.conf['user'], pwd=self.conf['passwd'],
+                                    use_ssl=self.conf['usessl'])
+                sender.send(message)
+                self.logger.debug("Mail sent to {}".format(dest))
 
 
 class UploadAction(Action):
