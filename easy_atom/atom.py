@@ -30,9 +30,10 @@ class Feed:
 
     """
     ATOM_FEED_DIR = "feeds"
+    ATOM_CONFIG_DIR = "conf"
     FEED_ENCODING = 'utf-8'
 
-    def __init__(self, domain, selfhref='', atom_config_dir='conf'):
+    def __init__(self, domain, selfhref='', config_filename=None):
         """
         Constructeur du générateur
 
@@ -44,23 +45,39 @@ class Feed:
         self.logger = logging.getLogger('feed')
         self.domain = domain
         self.selfhref = selfhref
-        self.atom_config_dir = atom_config_dir
         self.feed_config = {}
-        self.load_config()
+        self.feed_filename = None
+        self.rss2_filename = None
+        self.update_date = None
 
+        self.load_config(config_filename)
+        self.init()
+
+    def init(self):
         output = self.feed_config["output_dir"] if "output_dir" in self.feed_config else Feed.ATOM_FEED_DIR
-        self.feed_filename = os.path.join(output, self.feed_config["header"]["atom_feedname"])
-        self.rss2_filename = os.path.join(output, self.feed_config["header"]["rss2_feedname"])
+
+        if 'header' in self.feed_config and 'atom_feedname' in self.feed_config['header']:
+            self.feed_filename = os.path.join(output, self.feed_config["header"]["atom_feedname"])
+
+        if 'header' in self.feed_config and 'rss2_feedname' in self.feed_config['header']:
+            self.rss2_filename = os.path.join(output, self.feed_config["header"]["rss2_feedname"])
+
         self.update_date = datetime.datetime.now(datetime.timezone.utc).isoformat(sep='T')
         self.logger.debug("Feed : %s (RSS2 %s)" % (self.feed_filename, self.rss2_filename))
 
-    def load_config(self):
+    def get_config_filename(self):
+        return os.path.join(Feed.ATOM_CONFIG_DIR, "feed_config_{}.json".format(self.domain))
+
+    def load_config(self, config_filename=None):
         """
         Chargement de la configuration du flux.
         La configuration du flux se trouve par convention dans le fichier feed_config_<domain>.json
         :return: - 
         """
-        filename = os.path.join(self.atom_config_dir, "feed_config_{}.json".format(self.domain))
+        filename = config_filename
+        if not filename:
+            filename = self.get_config_filename()
+
         self.logger.debug("Load config file : {}".format(filename))
         self.feed_config = helpers.load_json(filename)
     
@@ -193,9 +210,12 @@ class Feed:
         :param root: noeud XML
         :return: -
         """
-        self.logger.info("Save Atom {0}".format(self.feed_filename))
-        with codecs.open(self.feed_filename, "w", Feed.FEED_ENCODING) as fout:
-            fout.write(content.xml2text(root, Feed.FEED_ENCODING))
+        if self.feed_filename:
+            self.logger.info("Save Atom {0}".format(self.feed_filename))
+            with codecs.open(self.feed_filename, "w", Feed.FEED_ENCODING) as fout:
+                fout.write(content.xml2text(root, Feed.FEED_ENCODING))
+        else:
+            self.logger.warning("Can't Save feed - no filename defined")
 
     def rss2(self, feed=None):
         """
