@@ -30,10 +30,9 @@ class Feed:
 
     """
     ATOM_FEED_DIR = "feeds"
-    ATOM_CONFIG_DIR = "conf"
     FEED_ENCODING = 'utf-8'
 
-    def __init__(self, domain, selfhref=''):
+    def __init__(self, domain, selfhref='', atom_config_dir='conf'):
         """
         Constructeur du générateur
 
@@ -45,6 +44,7 @@ class Feed:
         self.logger = logging.getLogger('feed')
         self.domain = domain
         self.selfhref = selfhref
+        self.atom_config_dir = atom_config_dir
         self.feed_config = {}
         self.load_config()
 
@@ -60,7 +60,7 @@ class Feed:
         La configuration du flux se trouve par convention dans le fichier feed_config_<domain>.json
         :return: - 
         """
-        filename = os.path.join(Feed.ATOM_CONFIG_DIR, "feed_config_{}.json".format(self.domain))
+        filename = os.path.join(self.atom_config_dir, "feed_config_{}.json".format(self.domain))
         self.logger.debug("Load config file : {}".format(filename))
         self.feed_config = helpers.load_json(filename)
     
