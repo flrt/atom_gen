@@ -12,6 +12,7 @@ __license__ = "MIT"
 import json
 import logging
 import os.path
+import os
 import sys
 import math
 import io
@@ -94,6 +95,10 @@ def object_to_json(obj, filename):
 
 
 def save_json(filename, data):
+    bdir = os.path.dirname(filename)
+    if not os.path.exists(bdir):
+        os.makedirs(bdir)
+        
     with open(filename, 'w') as fout:
         fout.write(json.dumps(data, sort_keys=True, indent=4))
 
