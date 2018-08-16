@@ -51,19 +51,6 @@ class Feed:
         self.update_date = None
 
         self.load_config(config_filename)
-        self.init()
-
-    def init(self):
-        output = self.feed_config["output_dir"] if "output_dir" in self.feed_config else Feed.ATOM_FEED_DIR
-
-        if 'header' in self.feed_config and 'atom_feedname' in self.feed_config['header']:
-            self.feed_filename = os.path.join(output, self.feed_config["header"]["atom_feedname"])
-
-        if 'header' in self.feed_config and 'rss2_feedname' in self.feed_config['header']:
-            self.rss2_filename = os.path.join(output, self.feed_config["header"]["rss2_feedname"])
-
-        self.update_date = datetime.datetime.now(datetime.timezone.utc).isoformat(sep='T')
-        self.logger.debug("Feed : %s (RSS2 %s)" % (self.feed_filename, self.rss2_filename))
 
     def get_config_filename(self):
         return os.path.join(Feed.ATOM_CONFIG_DIR, "feed_config_{}.json".format(self.domain))
@@ -80,6 +67,20 @@ class Feed:
 
         self.logger.debug("Load config file : {}".format(filename))
         self.feed_config = helpers.load_json(filename)
+
+        output = self.feed_config["output_dir"] if "output_dir" in self.feed_config else Feed.ATOM_FEED_DIR
+        self.logger.debug("Config Init - Output = {}".format(output))
+
+        if 'header' in self.feed_config and 'atom_feedname' in self.feed_config['header']:
+            self.feed_filename = os.path.join(output, self.feed_config["header"]["atom_feedname"])
+
+        if 'header' in self.feed_config and 'rss2_feedname' in self.feed_config['header']:
+            self.rss2_filename = os.path.join(output, self.feed_config["header"]["rss2_feedname"])
+
+        self.update_date = datetime.datetime.now(datetime.timezone.utc).isoformat(sep='T')
+        self.logger.debug("Feed : %s (RSS2 %s)" % (self.feed_filename, self.rss2_filename))
+
+        self.logger.debug("Config loaded : {}".format(self.feed_config))
     
     def feed_url(self, feed_type='atom'):
         """
@@ -224,6 +225,10 @@ class Feed:
         :param feed: arbre XML du flux Atom
         :return: -
         """
+        if not self.feed_filename:
+            self.logger.warning("No source filename (Atom MXL")
+            return
+
         try:
             import atomtorss2
             import atomtorss2.xslt_ext
