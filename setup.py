@@ -9,9 +9,9 @@ Released under MIT Licence.
 
 setup(
     name='atom_gen',
-    version='1.0',
+    version='1.1',
     packages=['easy_atom'],
-    url='http://github.com/flrt/easy_atom',
+    url='https://github.com/flrt/atom_gen',
     license='MIT',
     keywords="Atom,feed,XML",
     classifiers=[

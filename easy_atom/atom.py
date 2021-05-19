@@ -81,7 +81,7 @@ class Feed:
         self.logger.debug("Feed : %s (RSS2 %s)" % (self.feed_filename, self.rss2_filename))
 
         self.logger.debug("Config loaded : {}".format(self.feed_config))
-    
+
     def feed_url(self, feed_type='atom'):
         """
         Fournit l'URL de flux Atom (ou RSS2)
@@ -90,21 +90,20 @@ class Feed:
         :param feed_type: type du flux : rss2 ou atom
         :return: URL du Flux
         """
-        _url=[]
+        _url = []
         if self.selfhref:
             if self.selfhref.endswith('/'):
                 _url.append(self.selfhref[:-1])
             else:
                 _url.append(self.selfhref)
 
-        if feed_type=='atom':
+        if feed_type == 'atom':
             _url.append(self.feed_config["header"]["atom_feedname"])
         else:
             _url.append(self.feed_config["header"]["rss2_feedname"])
 
         return '/'.join(_url)
 
-            
     def make_entry_id(self, id):
         return "{}{}".format(self.feed_config["entry"]["urn_mask"], id)
 
@@ -165,8 +164,8 @@ class Feed:
 
         # generation des liens avec les informations detaillees
         if 'files_props' in entry:
-            self.add_entry_links(xml_entry, 
-                list(map(lambda x: x['url'], entry['files_props'])))
+            self.add_entry_links(xml_entry,
+                                 list(map(lambda x: x['url'], entry['files_props'])))
         # sinon avec seulement les liens vers les fichiers    
         elif 'files' in entry:
             self.add_entry_links(xml_entry, entry['files'])
@@ -176,7 +175,7 @@ class Feed:
         content.make_xhtml(xml_entry, entry)
         content.xmlelt(xml_entry, "updated", entry["date"])
         content.xmlelt(xml_entry, "summary", entry["summary"])
-        
+
     def add_entry_links(self, xml_parent, link_list):
         """
             Création des liens atom à partir d'une liste de liens
@@ -185,10 +184,11 @@ class Feed:
         :param link_list: liste de liens
         :return: -
         """
-        
+
         for link in link_list:
             content.xmlelt(xml_parent, "link", None,
-                            {"href": link, "rel": "related", "type": self.mimetype(link)})
+                           {"href": link, "rel": "related", "type": self.mimetype(link)})
+
     @staticmethod
     def mimetype(link):
         """
@@ -198,7 +198,13 @@ class Feed:
         """
         mimetypes = {".zip": "application/zip",
                      ".dbf": "application/dbase",
-                     ".csv": "text/plain"}
+                     ".csv": "text/csv",
+                     ".json": "application/json",
+                     ".xml": "text/xml",
+                     ".txt": "text/plain",
+                     ".sha": "text/vnd.digest",
+                     ".diff": "text/vnd.diff"}
+
         ext = link[link.rfind('.'):]
         if ext in mimetypes:
             return mimetypes[ext]
