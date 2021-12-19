@@ -15,7 +15,7 @@ from ftplib import FTP
 import mailer
 import requests
 import tempfile
-import tweepy, tweepy.error
+import tweepy, tweepy.errors
 
 from easy_atom import helpers, content
 
@@ -213,7 +213,7 @@ class TweetAction(Action):
                     ret._json['id_str']]
                 return '/'.join(_url_parts)
 
-            except tweepy.error.TweepError as te:
+            except tweepy.errors.TweepyException as te:
                 self.logger.warning("Erreur de tweet : {} ".format(te))
         
         return id_ret

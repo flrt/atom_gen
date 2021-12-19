@@ -10,9 +10,9 @@ import unittest
 from xmlunittest import XmlTestCase
 
 import logging
-import content
-import atom
-import helpers
+from easy_atom import content
+from easy_atom import atom
+from easy_atom import helpers
 
 class TestContent(XmlTestCase):
 
