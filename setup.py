@@ -9,7 +9,7 @@ Released under MIT Licence.
 
 setup(
     name='atom_gen',
-    version='1.1',
+    version='1.2',
     packages=['easy_atom'],
     url='https://github.com/flrt/atom_gen',
     license='MIT',
